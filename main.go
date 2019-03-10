@@ -19,6 +19,14 @@ func fmtDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
+func origPrice(doc *goquery.Document) string {
+	originalPrice := doc.Find("strong.product-pricing__prices-old-price").First().Text()
+	originalPrice = strings.TrimSpace(originalPrice)
+	originalPrice = strings.TrimSuffix(originalPrice, "*")
+	originalPrice = strings.TrimSpace(originalPrice)
+	return originalPrice
+}
+
 func main() {
 	doc, err := goquery.NewDocument("https://www.daydeal.ch/")
 	if err != nil {
@@ -29,10 +37,7 @@ func main() {
 	subtitle := doc.Find(".product-description__title2").First().Text()
 
 	price := doc.Find(".product-pricing__prices-new-price").First().Text()
-	originalPrice := doc.Find("div.originalPrice span").First().Text()
-	originalPrice = strings.TrimSpace(originalPrice)
-	originalPrice = strings.TrimSuffix(originalPrice, "*")
-	originalPrice = strings.TrimSpace(originalPrice)
+	originalPrice := origPrice(doc)
 
 	percentage := doc.Find(".product-progress__availability").First().Text()
 
