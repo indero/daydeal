@@ -8,6 +8,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+func dealName(doc *goquery.Document) string {
+	return doc.Find(".product-description__title1").First().Text()
+}
+
 func origPrice(doc *goquery.Document) string {
 	originalPrice := doc.Find("strong.product-pricing__prices-old-price").First().Text()
 	originalPrice = strings.TrimSpace(originalPrice)
@@ -22,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	title := doc.Find(".product-description__title1").First().Text()
+	title := dealName(doc)
 	subtitle := doc.Find(".product-description__title2").First().Text()
 
 	price := doc.Find(".product-pricing__prices-new-price").First().Text()
