@@ -39,6 +39,10 @@ func origPrice(doc *goquery.Document) string {
 	return originalPrice
 }
 
+func dealPercentage(doc *goquery.Document) string {
+	return doc.Find(".product-progress__availability").First().Text()
+}
+
 func main() {
 	doc, err := goquery.NewDocument("https://www.daydeal.ch/")
 	if err != nil {
@@ -51,7 +55,7 @@ func main() {
 	price := dealPrice(doc)
 	originalPrice := origPrice(doc)
 
-	percentage := doc.Find(".product-progress__availability").First().Text()
+	percentage := dealPercentage(doc)
 
 	// the website returns the moment of the next deal like "2006-01-02 15:04:05"
 	// in UTC without announcingt that it is UTC.
