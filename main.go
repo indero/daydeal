@@ -4,9 +4,21 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/araddon/dateparse"
 )
+
+func fmtDuration(d time.Duration) string {
+	d = d.Round(time.Second)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	d -= m * time.Minute
+	s := d / time.Second
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
+}
 
 func main() {
 	doc, err := goquery.NewDocument("https://www.daydeal.ch/")
@@ -25,10 +37,16 @@ func main() {
 
 	percentage := doc.Find(".product-progress__availability").First().Text()
 
-	nextDeal := doc.Find("span.js-clock").AttrOr("data-next-deal", "")
+	nextDealUTC := doc.Find("span.js-clock").AttrOr("data-next-deal", "")
+	nextDealParsed, err := dateparse.ParseStrict(nextDealUTC)
+	nextDeal := nextDealParsed.In(time.Local)
+
+	nextDealIn := time.Until(nextDeal)
+	nextDealInFmt := fmtDuration(nextDealIn)
 
 	fmt.Printf("\n    %s\n    %s\n\n", title, subtitle)
 	fmt.Printf("Für CHF %s anstatt %s\n", price, originalPrice)
 	fmt.Printf("Noch %s verfügbar\n", percentage)
-	fmt.Printf("Nächster Deal am: %s\n", nextDeal)
+	// Golang time formatting: https://flaviocopes.com/go-date-time-format/
+	fmt.Printf("Nächster Deal am: %s (in %s)\n", nextDeal.Format("Mon Jan _2 15:04:05"), nextDealInFmt)
 }
