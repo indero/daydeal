@@ -23,6 +23,10 @@ func dealName(doc *goquery.Document) string {
 	return doc.Find(".product-description__title1").First().Text()
 }
 
+func dealPrecName(doc *goquery.Document) string {
+	return doc.Find(".product-description__title2").First().Text()
+}
+
 func origPrice(doc *goquery.Document) string {
 	originalPrice := doc.Find("strong.product-pricing__prices-old-price").First().Text()
 	originalPrice = strings.TrimSpace(originalPrice)
@@ -38,7 +42,7 @@ func main() {
 	}
 
 	title := dealName(doc)
-	subtitle := doc.Find(".product-description__title2").First().Text()
+	subtitle := dealPrecName(doc)
 
 	price := doc.Find(".product-pricing__prices-new-price").First().Text()
 	originalPrice := origPrice(doc)
