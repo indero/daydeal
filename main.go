@@ -28,6 +28,10 @@ func origPrice(doc *goquery.Document) string {
 	return originalPrice
 }
 
+func dealPercentage(doc *goquery.Document) string {
+	return doc.Find(".product-progress__availability").First().Text()
+}
+
 func main() {
 	doc, err := goquery.NewDocument("https://www.daydeal.ch/")
 	if err != nil {
@@ -40,7 +44,7 @@ func main() {
 	price := dealPrice(doc)
 	originalPrice := origPrice(doc)
 
-	percentage := doc.Find(".product-progress__availability").First().Text()
+	percentage := dealPercentage(doc)
 
 	fmt.Printf("\n    %s\n    %s\n\n", title, subtitle)
 	fmt.Printf("Für CHF %s anstatt %s\n", price, originalPrice)
