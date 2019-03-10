@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"strings"
@@ -44,7 +45,25 @@ func dealPercentage(doc *goquery.Document) string {
 }
 
 func main() {
-	doc, err := goquery.NewDocument("https://www.daydeal.ch/")
+	outputAllInfo := false
+	dealAvailabilityFlg := flag.Bool("availability", false, "Availability")
+	dealPriceFlg := flag.Bool("price", false, "Price")
+	dealNameFlg := flag.Bool("name", false, "Name")
+	dealTitleFlg := flag.Bool("title", false, "Title")
+	dealSubtitleFlg := flag.Bool("subtitle", false, "Subtitle")
+	dealURLFlg := flag.String("url", "default", "Deal url. So far supported: 'https://daydeal.ch', 'https://www.daydeal.ch/deal-of-the-week', 'https://blickdeal.ch'")
+
+	flag.Parse()
+	if (flag.NFlag() == 1 && *dealURLFlg != "default") || flag.NFlag() == 0 {
+		outputAllInfo = true
+	}
+
+	//If the user inputs no url we need to ensure that it's pointing to daydeal.ch
+	if *dealURLFlg == "default" {
+		*dealURLFlg = "https://daydeal.ch"
+	}
+
+	doc, err := goquery.NewDocument(*dealURLFlg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,9 +84,22 @@ func main() {
 	nextDealIn := time.Until(nextDeal)
 	nextDealInFmt := fmtDuration(nextDealIn)
 
-	fmt.Printf("\n    %s\n    %s\n\n", title, subtitle)
-	fmt.Printf("Für CHF %s anstatt %s\n", price, originalPrice)
-	fmt.Printf("Noch %s verfügbar\n", percentage)
+	if *dealTitleFlg == true {
+		fmt.Printf("%s\n", title)
+	}
+	if *dealNameFlg == true || outputAllInfo == true {
+		fmt.Printf("\n    %s\n    %s\n\n", title, subtitle)
+	}
+	if *dealSubtitleFlg == true {
+		fmt.Printf("%s\n", subtitle)
+	}
+
+	if *dealPriceFlg == true || outputAllInfo == true {
+		fmt.Printf("Für CHF %s anstatt %s\n", price, originalPrice)
+	}
+	if *dealAvailabilityFlg == true || outputAllInfo == true {
+		fmt.Printf("Noch %s verfügbar\n", percentage)
+	}
 	// Golang time formatting: https://flaviocopes.com/go-date-time-format/
 	fmt.Printf("Nächster Deal am: %s (in %s)\n", nextDeal.Format("Mon Jan _2 15:04:05"), nextDealInFmt)
 }
