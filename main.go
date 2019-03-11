@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/goware/urlx"
 )
 
 func fmtDuration(d time.Duration) string {
@@ -52,8 +53,17 @@ func dealNext(doc *goquery.Document) time.Time {
 	return nextDeal
 }
 
+func sanitizeURL(inputURL string) string {
+	url, _ := urlx.Parse(inputURL)
+	url.Scheme = "https"
+	normalizedURL, _ := urlx.Normalize(url)
+	return normalizedURL
+}
+
 func main() {
 	outputAllInfo := false
+	defaultURL := "https://www.daydeal.ch"
+
 	dealAvailabilityFlg := flag.Bool("availability", false, "Availability")
 	dealPriceFlg := flag.Bool("price", false, "Price")
 	dealNameFlg := flag.Bool("name", false, "Name")
@@ -69,10 +79,12 @@ func main() {
 
 	//If the user inputs no url we need to ensure that it's pointing to daydeal.ch
 	if *dealURLFlg == "default" {
-		*dealURLFlg = "https://daydeal.ch"
+		*dealURLFlg = defaultURL
 	}
 
-	doc, err := goquery.NewDocument(*dealURLFlg)
+	normalizedURL := sanitizeURL(*dealURLFlg)
+
+	doc, err := goquery.NewDocument(normalizedURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -110,5 +122,9 @@ func main() {
 	if *dealNextFlg == true || outputAllInfo == true {
 		// Golang time formatting: https://flaviocopes.com/go-date-time-format/
 		fmt.Printf("Nächster Deal am: %s (in %s)\n", nextDeal.Format("Mon Jan _2 15:04:05"), nextDealInFmt)
+	}
+
+	if outputAllInfo == true {
+		fmt.Printf("%s\n", normalizedURL)
 	}
 }
