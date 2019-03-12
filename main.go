@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/araddon/dateparse"
 )
 
 func fmtDuration(d time.Duration) string {
@@ -37,9 +36,10 @@ func main() {
 
 	percentage := doc.Find(".product-progress__availability").First().Text()
 
+	// the website returns the moment of the next deal like "2006-01-02 15:04:05"
+	// in UTC without announcingt that it is UTC.
 	nextDealUTC := doc.Find("span.js-clock").AttrOr("data-next-deal", "")
-	nextDealParsed, err := dateparse.ParseStrict(nextDealUTC)
-	nextDeal := nextDealParsed.In(time.Local)
+	nextDeal, _ := time.ParseInLocation("2006-01-02 15:04:05", nextDealUTC, time.Local)
 
 	nextDealIn := time.Until(nextDeal)
 	nextDealInFmt := fmtDuration(nextDealIn)
