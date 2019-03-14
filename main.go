@@ -44,6 +44,14 @@ func dealPercentage(doc *goquery.Document) string {
 	return doc.Find(".product-progress__availability").First().Text()
 }
 
+func dealNext(doc *goquery.Document) time.Time {
+	// the website returns the moment of the next deal like "2006-01-02 15:04:05"
+	// in UTC without announcingt that it is UTC.
+	nextDealUTC := doc.Find("span.js-clock").AttrOr("data-next-deal", "")
+	nextDeal, _ := time.ParseInLocation("2006-01-02 15:04:05", nextDealUTC, time.Local)
+	return nextDeal
+}
+
 func main() {
 	outputAllInfo := false
 	dealAvailabilityFlg := flag.Bool("availability", false, "Availability")
@@ -52,6 +60,7 @@ func main() {
 	dealTitleFlg := flag.Bool("title", false, "Title")
 	dealSubtitleFlg := flag.Bool("subtitle", false, "Subtitle")
 	dealURLFlg := flag.String("url", "default", "Deal url. So far supported: 'https://daydeal.ch', 'https://www.daydeal.ch/deal-of-the-week', 'https://blickdeal.ch'")
+	dealNextFlg := flag.Bool("next", false, "Show time and date of the next deal")
 
 	flag.Parse()
 	if (flag.NFlag() == 1 && *dealURLFlg != "default") || flag.NFlag() == 0 {
@@ -76,10 +85,7 @@ func main() {
 
 	percentage := dealPercentage(doc)
 
-	// the website returns the moment of the next deal like "2006-01-02 15:04:05"
-	// in UTC without announcingt that it is UTC.
-	nextDealUTC := doc.Find("span.js-clock").AttrOr("data-next-deal", "")
-	nextDeal, _ := time.ParseInLocation("2006-01-02 15:04:05", nextDealUTC, time.Local)
+	nextDeal := dealNext(doc)
 
 	nextDealIn := time.Until(nextDeal)
 	nextDealInFmt := fmtDuration(nextDealIn)
@@ -100,6 +106,9 @@ func main() {
 	if *dealAvailabilityFlg == true || outputAllInfo == true {
 		fmt.Printf("Noch %s verfügbar\n", percentage)
 	}
-	// Golang time formatting: https://flaviocopes.com/go-date-time-format/
-	fmt.Printf("Nächster Deal am: %s (in %s)\n", nextDeal.Format("Mon Jan _2 15:04:05"), nextDealInFmt)
+
+	if *dealNextFlg == true || outputAllInfo == true {
+		// Golang time formatting: https://flaviocopes.com/go-date-time-format/
+		fmt.Printf("Nächster Deal am: %s (in %s)\n", nextDeal.Format("Mon Jan _2 15:04:05"), nextDealInFmt)
+	}
 }
